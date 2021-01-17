@@ -8,13 +8,15 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Brandon Weaver"]
   spec.email         = ["keystonelemur@gmail.com"]
 
+  spec.required_ruby_version = '>= 3.0.0'
+
   spec.summary       = %q{Dive Into Objects - Pattern matching extension for plain old Ruby objects}
   spec.homepage      = "https://www.github.com/baweaver/dio"
   spec.license       = "MIT"
 
-  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["homepage_uri"]    = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
-  spec.metadata["changelog_uri"] = "#{spec.homepage}/CHANGELOG.md"
+  spec.metadata["changelog_uri"]   = "#{spec.homepage}/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
