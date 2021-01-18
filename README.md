@@ -15,8 +15,166 @@ match against it.
 
 ## Usage
 
-Further usage instructions will be documented at a later date, see
-`spec/dio_spec.rb` for ideas in the mean time.
+There are three core types of Forwarders, the center of how Dio works:
+
+1. **Dynamic** - Uses `public_send` for `Hash` matches, and `Array` method coercion for `Array` matches
+2. **Attribute** - Uses `attr_*` methods as source of match data
+3. **String Hash** - Treats `String` Hashes like `Symbol` ones for the purpose of matching.
+
+Let's take a look at each of them.
+
+### Dynamic Forwarder
+
+Used with `Dio.dynamic` or `Dio[]`, the default forwarder. This uses `public_send` to extract attributes for pattern matching.
+
+#### With Hash Matching
+
+With an `Integer` this might look like this:
+
+```ruby
+Dio[1] in { succ: { succ: { succ: 4 } } }
+# => true
+```
+
+This has the same result as calling `1.succ.succ.succ` with each nested `Hash` in the pattern match working on the next value. That means it can also be used to do this:
+
+```ruby
+Dio[1] in {
+  succ: { chr: "\x02", to_s: '2' },
+  to_s: '1'
+}
+```
+
+#### With Array Matching
+
+If the object under the wrapper provides a method that can be used to coerce the value into an `Array` it can be used for an `Array` match.
+
+Those methods are: `to_a`, `to_ary`, and `map`.
+
+Given a `Node` class with a value and a set of children:
+
+```ruby
+Node = Struct.new(:value, :children)
+```
+
+We can match against it as if it were capable of natively pattern matching:
+
+```ruby
+tree = Node[1,
+  Node[2, Node[3, Node[4]]],
+  Node[5],
+  Node[6, Node[7], Node[8]]
+]
+
+case Dio.dynamic(tree)
+in [1, [*, [5, _], *]]
+  true
+else
+  false
+end
+```
+
+### Attribute Forwarder
+
+Attribute Forwarders are more conservative than Dynamic ones as they only work on public attributes, or those that are defined with `attr_*`. In the case of this class:
+
+```ruby
+class Person
+  attr_reader :name, :age, :children
+
+  def initialize(name:, age:, children: [])
+    @name = name
+    @age = age
+    @children = children
+  end
+end
+```
+
+...the attributes available would be `name`, `age`, and `children`. This also means that you can dive into `children` as well.
+
+#### With Hash Matching
+
+Let's say we had Alice here:
+
+```ruby
+Person.new(
+  name: 'Alice',
+  age: 40,
+  children: [
+    Person.new(name: 'Jim', age: 10),
+    Person.new(name: 'Jill', age: 10)
+  ]
+)
+```
+
+With Hash style matching we can do this:
+
+```ruby
+case Dio.attribute(alice)
+in { name: /^A/, age: 30..50 }
+  true
+else
+  false
+end
+```
+
+...which, as pattern matches use `===` lets us use a lot of other fun things. We can even go deeper into searching through the `children` attribute:
+
+```ruby
+case Dio.attribute(alice)
+in { children: [*, { name: /^J/ }, *] }
+  true
+else
+  false
+end
+```
+
+#### With Array Matching
+
+This one is a bit more spurious, as it applies the attributes in the name it sees them. For something like our `Node` above with two attributes it will work the same as `dynamic`.
+
+### String Hash Forwarder
+
+Pattern Matching cannot apply to `String` keys, which can be annoying when working with data and not wanting to deep transform it into `Symbol` keys. The String Hash Forwarder tries to address this.
+
+#### With Hash Matching
+
+Let's say we had the following `Hash`:
+
+```ruby
+hash = {
+  'a' => 1,
+  'b' => 2,
+  'c' => {
+    'd' => 3,
+    'e' => {
+      'f' => 4
+    }
+  }
+}
+```
+
+We can match against it by using the `Symbol` equivalents of our `String` keys:
+
+```ruby
+case Dio.string_hash(hash)
+in { a: 1, b: 2 }
+  true
+else
+  false
+end
+```
+
+...and because of the nature of Dio you can continue to dive deeper:
+
+```ruby
+case Dio.string_hash(hash)
+in { a: 1, b: 2, c: { d: 1..10, e: { f: 3.. } } }
+  true
+else
+  false
+end
+```
 
 ## Installation
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dio (0.0.1)
+    dio (0.0.3)
 
 GEM
   remote: https://rubygems.org/
