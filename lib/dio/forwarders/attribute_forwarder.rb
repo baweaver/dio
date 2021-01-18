@@ -35,7 +35,7 @@ module Dio
       def deconstruct
         return @base_object.map(&NEW_DIVE) if @base_object.is_a?(Array)
 
-        @attributes.map { NEW_DIVE[@base_object.send(_1)] }
+        @attributes.map { NEW_DIVE[@base_object.public_send(_1)] }
       end
 
       # Deconstructs attributes from an object, wrapping each value in a new
@@ -59,7 +59,7 @@ module Dio
 
         known_keys = @attributes.intersection(key_set)
 
-        known_keys.to_h { [_1, NEW_DIVE[@base_object.send(_1)]] }
+        known_keys.to_h { [_1, NEW_DIVE[@base_object.public_send(_1)]] }
       end
 
       # Unwrapped context, aliased afterwards to use Ruby's delegator interface
