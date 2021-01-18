@@ -16,6 +16,9 @@ module Dio
     # @since 0.0.3
     #
     class StringHashForwarder < BaseForwarder
+      # Wrapper for creating a new Forwarder
+      NEW_DIVE = -> v { new(v) }
+
       # If an Array is provided from nested values we may want to match against
       # it as well. Wrap the values in new forwarders to accomodate this.
       #

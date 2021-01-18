@@ -13,6 +13,9 @@ module Dio
     # @since 0.0.3
     #
     class AttributeForwarder < BaseForwarder
+      # Wrapper for creating a new Forwarder
+      NEW_DIVE = -> v { new(v) }
+
       def initialize(base_object)
         ivars = Set.new base_object
           .instance_variables
@@ -30,6 +33,8 @@ module Dio
       #
       # @return [Array]
       def deconstruct
+        return @base_object.map(&NEW_DIVE) if @base_object.is_a?(Array)
+
         @attributes.map { NEW_DIVE[@base_object.send(_1)] }
       end
 

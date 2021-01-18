@@ -42,7 +42,7 @@ module Dio
     # @author [baweaver]
     #
     class BaseForwarder < ::Delegator
-      # Wrapper for creating a new DiveForwarder
+      # Wrapper for creating a new Forwarder
       NEW_DIVE = -> v { new(v) }
 
       # Creates a new delegator that understands the pattern matching interface
@@ -110,7 +110,7 @@ module Dio
       def deconstruct_keys(keys)
         if @base_object.respond_to?(:deconstruct_keys)
           @base_object
-            .deconstruct_keys(*keys)
+            .deconstruct_keys(keys)
             .transform_values!(&NEW_DIVE)
         else
           keys.to_h { |k| @base_object.public_send(k).then { |v| [k, NEW_DIVE[v]] } }
